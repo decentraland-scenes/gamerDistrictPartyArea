@@ -1,4 +1,9 @@
 import utils from '../node_modules/decentraland-ecs-utils/index'
+import {
+  farmerTalk,
+} from './NPC/dialog'
+import { NPC } from './NPC/npc'
+import * as ui from '../node_modules/@dcl/ui-utils/index'
 
 let party = new Entity()
 party.addComponent(new GLTFShape('models/party_area.glb'))
@@ -134,8 +139,46 @@ class RotatorSystem implements ISystem {
 
 engine.addSystem(new RotatorSystem())
 
+const monster = new Entity()
+monster.addComponent(new GLTFShape('models/monster.glb'))
+monster.addComponent(
+  new Transform({
+    position: new Vector3(26.35, 0, 31.23),
+    rotation: Quaternion.Euler(0, 145, 0),
+  })
+)
+engine.addEntity(monster)
+
+export let halloweenTheme = new Texture('images/HalloweentAtlas.png')
+
+export let farmer = new NPC(
+  {
+    position: new Vector3(35, 0.5, 24.24),
+    rotation: Quaternion.Euler(0, 90, 0),
+  },
+  new GLTFShape('models/farmer.glb'),
+  () => {
+    if (farmer.introduced) return
+    farmer.talk(farmerTalk)
+
+    farmer.playAnimation(`Cocky`, true, 1.83)
+  },
+  'images/portraits/farmer.png',
+  4,
+  'Weight_Shift',
+  true,
+  false
+)
+farmer.dialog = new ui.DialogWindow(
+  { path: 'images/portraits/farmer.png' },
+  true,
+  halloweenTheme
+)
+farmer.dialog.leftClickIcon.positionX = 340 - 60
+farmer.dialog.text.color = Color4.FromHexString('#8DFF34FF')
+
 // Input.instance.subscribe('BUTTON_DOWN', ActionButton.PRIMARY, false, (e) => {
-//   log(
+//   console.log(
 //     `{ position: new Vector3(`,
 //     Camera.instance.position.x,
 //     ',',
@@ -145,3 +188,23 @@ engine.addSystem(new RotatorSystem())
 //     `),}`
 //   )
 // })
+
+
+Input.instance.subscribe('BUTTON_DOWN', ActionButton.PRIMARY, true, (e) => {
+  if (e.hit) 
+    console.log(
+      'POS: ',
+      engine.entities[e.hit.entityId].getComponent(Transform)
+    )
+
+    console.log(
+      `{ position: new Vector3(`,
+      Camera.instance.position.x,
+      ',',
+      Camera.instance.position.y,
+      ',',
+      Camera.instance.position.z,
+      `),}`
+    )
+  }
+})
